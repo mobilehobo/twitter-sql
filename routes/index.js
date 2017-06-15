@@ -47,12 +47,13 @@ module.exports = function makeRouterWithSockets(io) {
 
   // // create a new tweet
   router.post('/tweets', function (req, res, next) {
-    client.query('SELECT id FROM users WHERE users.name = $1', [req.body.name], (err, Uresults) => {
+    client.query('SELECT * FROM users WHERE users.name = $1', [req.body.name], (err, results) => {
+      let userResults = results;
       if (err) return next(err);
-      client.query('INSERT INTO tweets (user_id, content) VALUES($1, $2) RETURNING *', [Uresults.rows[0].id, req.body.content], (err, results) => {
+      client.query('INSERT INTO tweets (user_id, content) VALUES($1, $2) RETURNING *', [userResults.rows[0].id, req.body.content], (err, results) => {
         if (err) return next(err);
-        console.log(Uresults.rows[0].picture_url);
-        io.sockets.emit('new_tweet', {name: req.body.name, content: req.body.content, picture_url: Uresults.rows[0].picture_url, id: results.rows[0].id});
+        console.log(userResults);
+        io.sockets.emit('new_tweet', {name: req.body.name, content: req.body.content, picture_url: userResults.rows[0].picture_url, id: results.rows[0].id});
         res.redirect('/');
       });
     });
